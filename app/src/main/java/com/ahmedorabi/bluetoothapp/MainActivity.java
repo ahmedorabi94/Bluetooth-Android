@@ -10,10 +10,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,6 +20,7 @@ import com.ahmedorabi.bluetoothapp.adapter.DeviceAdapter;
 import com.ahmedorabi.bluetoothapp.adapter.DeviceCallback;
 import com.ahmedorabi.bluetoothapp.data.Admin;
 import com.ahmedorabi.bluetoothapp.data.Device;
+import com.ahmedorabi.bluetoothapp.data.GenerateAdmins;
 import com.ahmedorabi.bluetoothapp.data.db.AdminDatabase;
 import com.ahmedorabi.bluetoothapp.data.db.UserDao;
 import com.ahmedorabi.bluetoothapp.databinding.ActivityMainBinding;
@@ -50,17 +48,14 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity {
 
     private BluetoothAdapter BA;
-    private Set<BluetoothDevice> pairedDevices;
     private ActivityMainBinding binding;
 
     private final String TAG = "MainActivity";
     static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     private BluetoothSocket mmSocket;
-    private BluetoothDevice mmDevice;
 
     private InputStream mmInStream;
-    private OutputStream mmOutStream;
     InputStream tmpIn = null;
     OutputStream tmpOut = null;
 
@@ -71,12 +66,9 @@ public class MainActivity extends AppCompatActivity {
         public void onItemClick(Device device) {
 
             Log.e("onItemClick", device.toString());
-
-            //  BA = BluetoothAdapter.getDefaultAdapter();
             BluetoothDevice bluetoothDevice = BA.getRemoteDevice(device.getAddress());
 
             new ConnectThread(bluetoothDevice).start();
-            //   new AcceptThread().start();
 
 
         }
@@ -96,52 +88,26 @@ public class MainActivity extends AppCompatActivity {
         binding.getVisiableBtn.setOnClickListener(v -> visible());
         binding.listDevicesBtn.setOnClickListener(v -> list());
 
-        binding.sendDataBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        binding.sendDataBtn.setOnClickListener(v -> {
 
-                try {
-                    sendFile(Uri.fromFile(filePath), mmSocket);
-                } catch (IOException e) {
-                    Log.e(TAG, "Error occurred when sending data", e);
-                    e.printStackTrace();
-                }
-
-
-//                try {
-//                    mmOutStream.write("Test Bluetooth".getBytes());
-//
-//                    // Share the sent message with the UI activity.
-////                    Message writtenMsg = handler.obtainMessage(
-////                            MessageConstants.MESSAGE_WRITE, -1, -1, mmBuffer);
-////                    writtenMsg.sendToTarget();
-//                } catch (IOException e) {
-//                    Log.e(TAG, "Error occurred when sending data", e);
-//
-//                    // Send a failure message back to the activity.
-////                    Message writeErrorMsg =
-////                            handler.obtainMessage(MessageConstants.MESSAGE_TOAST);
-////                    Bundle bundle = new Bundle();
-////                    bundle.putString("toast",
-////                            "Couldn't send data to the other device");
-////                    writeErrorMsg.setData(bundle);
-////                    handler.sendMessage(writeErrorMsg);
-//                }
-
+            try {
+                sendFile(Uri.fromFile(filePath), mmSocket);
+            } catch (IOException e) {
+                Log.e(TAG, "Error occurred when sending data", e);
+                e.printStackTrace();
             }
+
+
         });
 
 
-        binding.receiveDataBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //  createExcelSheet();
-                try {
-                    readExcel(filePath);
-                } catch (Exception e) {
-                    //  e.printStackTrace();
-                    Log.e(TAG, e.getMessage());
-                }
+        binding.receiveDataBtn.setOnClickListener(v -> {
+            //  createExcelSheet();
+            try {
+                readExcel(filePath);
+            } catch (Exception e) {
+                //  e.printStackTrace();
+                Log.e(TAG, e.getMessage());
             }
         });
 
@@ -160,33 +126,12 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Already on", Toast.LENGTH_LONG).show();
         }
 
-//        try {
-//          //  BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-//            Method getUuidsMethod = BluetoothAdapter.class.getDeclaredMethod("getUuids", null);
-//            ParcelUuid[] uuids = (ParcelUuid[]) getUuidsMethod.invoke(BA, null);
-//
-//            if(uuids != null) {
-//                for (ParcelUuid uuid : uuids) {
-//                    Log.d(TAG, "UUID: " + uuid.getUuid().toString());
-//                }
-//            }else{
-//                Log.d(TAG, "Uuids not found, be sure to enable Bluetooth!");
-//            }
-//
-//        } catch (NoSuchMethodException e) {
-//            e.printStackTrace();
-//        } catch (IllegalAccessException e) {
-//            e.printStackTrace();
-//        } catch (InvocationTargetException e) {
-//            e.printStackTrace();
-//        }
     }
 
     public void off() {
         BA.disable();
         Toast.makeText(getApplicationContext(), "Turned off", Toast.LENGTH_LONG).show();
     }
-
 
     public void visible() {
 
@@ -199,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void list() {
-        pairedDevices = BA.getBondedDevices();
+        Set<BluetoothDevice> pairedDevices = BA.getBondedDevices();
 
         List<Device> deviceList = new ArrayList<>();
 
@@ -248,10 +193,9 @@ public class MainActivity extends AppCompatActivity {
             FileOutputStream fileOutputStream = new FileOutputStream(filePath);
             hssfWorkbook.write(fileOutputStream);
 
-            if (fileOutputStream != null) {
-                fileOutputStream.flush();
-                fileOutputStream.close();
-            }
+            fileOutputStream.flush();
+            fileOutputStream.close();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -316,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
 
             Admin admin = dao.getAllUsersByMobile("01011135949");
 
-            Log.e(TAG,admin.toString());
+            Log.e(TAG, admin.toString());
 
 
         } catch (Exception e) {
@@ -335,26 +279,7 @@ public class MainActivity extends AppCompatActivity {
             CellValue cellValue = formulaEvaluator.evaluate(cell);
 
             value = "" + cellValue.getStringValue();
-//            switch (cellValue.getCellType()) {
-//                case CellType.BOOLEAN:
-//                    value = "" + cellValue.getBooleanValue();
-//                    break;
-//                case CellType.NUMERIC:
-//                    double numericValue = cellValue.getNumberValue();
-//                    if (HSSFDateUtil.isCellDateFormatted(cell)) {
-//                        double date = cellValue.getNumberValue();
-//                        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yy");
-//                        value = formatter.format(HSSFDateUtil.getJavaDate(date));
-//                    } else {
-//                        value = "" + numericValue;
-//                    }
-//                    break;
-//                case CellType.STRING:
-//                    value = "" + cellValue.getStringValue();
-//                    break;
-//                default:
-//                    break;
-//            }
+
         } catch (NullPointerException e) {
             /* proper error handling should be here */
             Log.e(TAG, e.getMessage());
@@ -425,7 +350,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void run() {
-            BluetoothSocket socket = null;
+            BluetoothSocket socket;
             // Keep listening until exception occurs or a socket is returned.
             while (true) {
                 try {
@@ -467,7 +392,6 @@ public class MainActivity extends AppCompatActivity {
             // Use a temporary object that is later assigned to mmSocket
             // because mmSocket is final.
             BluetoothSocket tmp = null;
-            mmDevice = device;
 
             Log.e(TAG, "ConnectThread Start");
             try {
@@ -525,10 +449,8 @@ public class MainActivity extends AppCompatActivity {
     private class ConnectedThread extends Thread {
         private final BluetoothSocket mmSocket;
 
-        private byte[] mmBuffer; // mmBuffer store for the stream
-
         //  private static final String TAG = "MY_APP_DEBUG_TAG";
-        private Handler handler; // handler that gets info from Bluetooth service
+        //  private Handler handler; // handler that gets info from Bluetooth service
 
 
         public ConnectedThread(BluetoothSocket socket) {
@@ -552,7 +474,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             mmInStream = tmpIn;
-            mmOutStream = tmpOut;
+            OutputStream mmOutStream = tmpOut;
         }
 
         public void run() {
@@ -560,23 +482,13 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "ConnectedThread Run");
 
 
-            mmBuffer = new byte[16 * 1024];
-            int numBytes; // bytes returned from read()
+            // mmBuffer store for the stream
+            byte[] mmBuffer = new byte[16 * 1024];
 
             // Keep listening to the InputStream until an exception occurs.
             while (true) {
                 try {
-                    // Read from the InputStream.
-//                    numBytes = mmInStream.read(mmBuffer);
-//
-//                    String message = Arrays.toString(mmBuffer);
-//
-//                    String s = new String(mmBuffer, 0, numBytes);
-//
-//                    //  byte[] decodedString = Base64.decode(s, Base64.DEFAULT);
-//                    Log.e(TAG, s);
 
-//                    long length = filePath.length();
                     FileOutputStream out = new FileOutputStream(filePath);
 //                    OutputStream out = mmOutStream;
 //
@@ -590,15 +502,6 @@ public class MainActivity extends AppCompatActivity {
                     //   in.close();
                     //    socket.close();
 
-//                    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
-//                    bos.write(s.getBytes());
-//                    bos.flush();
-//                    bos.close();
-
-
-//                    FileOutputStream fos = new FileOutputStream(filePath);
-//                    fos.write(mmBuffer);
-//                    fos.close();
 
                     // Send the obtained bytes to the UI activity.
 //                    Message readMsg = handler.obtainMessage(
@@ -612,28 +515,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // Call this from the main activity to send data to the remote device.
-        public void write(byte[] bytes) {
-            try {
-                mmOutStream.write(bytes);
-
-                // Share the sent message with the UI activity.
-                Message writtenMsg = handler.obtainMessage(
-                        MessageConstants.MESSAGE_WRITE, -1, -1, mmBuffer);
-                writtenMsg.sendToTarget();
-            } catch (IOException e) {
-                Log.e(TAG, "Error occurred when sending data", e);
-
-                // Send a failure message back to the activity.
-                Message writeErrorMsg =
-                        handler.obtainMessage(MessageConstants.MESSAGE_TOAST);
-                Bundle bundle = new Bundle();
-                bundle.putString("toast",
-                        "Couldn't send data to the other device");
-                writeErrorMsg.setData(bundle);
-                handler.sendMessage(writeErrorMsg);
-            }
-        }
 
         // Call this method from the main activity to shut down the connection.
         public void cancel() {
