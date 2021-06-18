@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity">
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/turnOnBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Turn On"
+            android:textAllCaps="false"
+            app:layout_constraintEnd_toEndOf="@+id/listDevicesBtn"
+            app:layout_constraintStart_toStartOf="@+id/listDevicesBtn"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/turnOffBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Turn Off"
+            android:textAllCaps="false"
+            app:layout_constraintEnd_toEndOf="@+id/listDevicesBtn"
+            app:layout_constraintHorizontal_bias="0.509"
+            app:layout_constraintStart_toStartOf="@+id/listDevicesBtn"
+            app:layout_constraintTop_toBottomOf="@+id/turnOnBtn" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/getVisiableBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Get visible"
+            android:textAllCaps="false"
+            app:layout_constraintEnd_toEndOf="@+id/listDevicesBtn"
+            app:layout_constraintStart_toStartOf="@+id/listDevicesBtn"
+            app:layout_constraintTop_toBottomOf="@+id/turnOffBtn" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/sendDataBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Send Data"
+            android:textAllCaps="false"
+            app:layout_constraintEnd_toEndOf="@+id/listDevicesBtn"
+            app:layout_constraintStart_toStartOf="@+id/listDevicesBtn"
+            app:layout_constraintTop_toBottomOf="@+id/getVisiableBtn" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/receiveDataBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:maxLines="1"
+            android:text="Receive Data"
+            android:textAllCaps="false"
+            app:layout_constraintEnd_toEndOf="@+id/listDevicesBtn"
+            app:layout_constraintStart_toStartOf="@+id/listDevicesBtn"
+            app:layout_constraintTop_toBottomOf="@+id/sendDataBtn" />
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/listDevicesBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="List Devices"
+            android:textAllCaps="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/receiveDataBtn" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/listDevicesBtn"
+            tools:listitem="@layout/device_item" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
