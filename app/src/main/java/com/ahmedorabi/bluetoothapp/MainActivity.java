@@ -45,13 +45,16 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter BA;
     private ActivityMainBinding binding;
     private final String TAG = "MainActivity";
-    static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private BluetoothSocket mmSocket;
     private InputStream mmInStream;
-    InputStream tmpIn = null;
-    OutputStream tmpOut = null;
-    List<Device> deviceList;
+    private InputStream tmpIn = null;
+    private OutputStream tmpOut = null;
+    private List<Device> deviceList;
     private final File filePath = new File(Environment.getExternalStorageDirectory() + "/Admin.xls");
+
+    private ClientThread clientThread;
+    private ServerThread serverThread;
 
     private final DeviceCallback callback = new DeviceCallback() {
         @Override
@@ -59,7 +62,8 @@ public class MainActivity extends AppCompatActivity {
 
             BluetoothDevice bluetoothDevice = BA.getRemoteDevice(device.getAddress());
 
-            new ClientThread(bluetoothDevice).start();
+            clientThread = new ClientThread(bluetoothDevice);
+            clientThread.start();
 
         }
     };
@@ -86,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         binding.turnOnBtn.setOnClickListener(v -> on());
         binding.turnOffBtn.setOnClickListener(v -> off());
         binding.getVisiableBtn.setOnClickListener(v -> visible());
-        binding.listDevicesBtn.setOnClickListener(v -> list());
+        //  binding.listDevicesBtn.setOnClickListener(v -> list());
 
         binding.sendDataBtn.setOnClickListener(v -> {
 
@@ -122,7 +126,8 @@ public class MainActivity extends AppCompatActivity {
         binding.searchBtn.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, SearchActivity.class)));
 
 
-        new ServerThread().start();
+        serverThread = new ServerThread();
+        serverThread.start();
 
 
     }
@@ -186,11 +191,11 @@ public class MainActivity extends AppCompatActivity {
             while ((len = bis.read(buffer)) != -1) {
                 os.write(buffer, 0, len);
             }
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
         } finally {
             bis.close();
             os.flush();
-//           os.close();
-//            bs.close();
         }
     }
 
@@ -217,6 +222,22 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(receiver);
+        try {
+            mmSocket.close();
+            tmpIn.close();
+            tmpOut.close();
+
+            if (clientThread != null) {
+                clientThread.cancel();
+            }
+            if (serverThread != null) {
+                serverThread.cancel();
+            }
+
+
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        }
     }
 
     // To Accept from another device // Server
@@ -262,10 +283,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Closes the connect socket and causes the thread to finish.
         public void cancel() {
-            try {
-                mmServerSocket.close();
-            } catch (IOException e) {
-                Log.e(TAG, "Could not close the connect socket", e);
+            if (mmServerSocket != null) {
+                try {
+                    mmServerSocket.close();
+                } catch (Exception e) {
+                    Log.e(TAG, "Could not close the client socket", e);
+                }
             }
         }
     }
@@ -317,11 +340,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void cancel() {
-            try {
-                mmSocket.close();
-            } catch (IOException e) {
-                Log.e(TAG, "Could not close the client socket", e);
+
+            if (mmSocket != null) {
+                try {
+                    mmSocket.close();
+                } catch (Exception e) {
+                    Log.e(TAG, "Could not close the client socket", e);
+                }
             }
+
+
         }
     }
 
@@ -346,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             mmInStream = tmpIn;
-            OutputStream mmOutStream = tmpOut;
+            //     OutputStream mmOutStream = tmpOut;
         }
 
         public void run() {
@@ -360,17 +388,18 @@ public class MainActivity extends AppCompatActivity {
 
                     FileOutputStream out = new FileOutputStream(filePath);
 
+
                     int count;
                     while ((count = mmInStream.read(mmBuffer)) > 0) {
                         out.write(mmBuffer, 0, count);
                     }
 
                     out.flush();
-                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Received", Toast.LENGTH_SHORT).show());
+                    //  runOnUiThread(() -> Toast.makeText(MainActivity.this, "File Received", Toast.LENGTH_SHORT).show());
 
                     //  out.close();
-                    //   in.close();
-                    //    socket.close();
+                    //  in.close();
+                    //  socket.close();
 
                 } catch (IOException e) {
                     Log.e(TAG, "Input stream was disconnected", e);
