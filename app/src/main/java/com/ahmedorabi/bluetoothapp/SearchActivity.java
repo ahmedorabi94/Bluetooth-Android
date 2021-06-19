@@ -2,7 +2,6 @@ package com.ahmedorabi.bluetoothapp;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
@@ -34,13 +33,12 @@ public class SearchActivity extends AppCompatActivity {
 
             Admin admin = dao.getAllUsersByMobile(mobileNum);
 
-            Log.e(TAG, admin.toString());
+            if (admin != null) {
+                Log.e(TAG, admin.toString());
+                String result = "Name : " + admin.getName() + "\n" + "Date Of Birth : " + admin.getDateOfBirth() + "\n" + "Company : " + admin.getCompany();
+                binding.resultTv.setText(result);
+            }
 
-
-            String result = "Name : " + admin.getName() + "\n" + "Date Of Birth : " + admin.getDateOfBirth() + "\n" + "Company : " + admin.getCompany();
-
-
-            binding.resultTv.setText(result);
 
         });
 

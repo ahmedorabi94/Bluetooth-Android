@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
             Log.e("onItemClick", device.toString());
             BluetoothDevice bluetoothDevice = BA.getRemoteDevice(device.getAddress());
 
-            new ConnectThread(bluetoothDevice).start();
+            new ClientThread(bluetoothDevice).start();
 
 
         }
@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
         binding.searchBtn.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, SearchActivity.class)));
 
 
-        new AcceptThread().start();
+        new ServerThread().start();
 
     }
 
@@ -331,16 +331,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // To Accept from another device // Server
-    private class AcceptThread extends Thread {
+    private class ServerThread extends Thread {
         private final BluetoothServerSocket mmServerSocket;
 
-        public AcceptThread() {
-            // Use a temporary object that is later assigned to mmServerSocket
-            // because mmServerSocket is final.
+        public ServerThread() {
             BluetoothServerSocket tmp = null;
-            Toast.makeText(MainActivity.this, "Waiting for Connection...", Toast.LENGTH_SHORT).show();
+            runOnUiThread(() -> Toast.makeText(MainActivity.this, "Waiting for Connection...", Toast.LENGTH_SHORT).show());
             try {
-                // MY_UUID is the app's UUID string, also used by the client code.
                 tmp = BA.listenUsingRfcommWithServiceRecord("Ahmed", myUUID);
             } catch (IOException e) {
                 Log.e(TAG, "Socket's listen() method failed", e);
@@ -350,20 +347,12 @@ public class MainActivity extends AppCompatActivity {
 
         public void run() {
             BluetoothSocket socket;
-            // Keep listening until exception occurs or a socket is returned.
             while (true) {
                 try {
                     socket = mmServerSocket.accept();
                     String name = socket.getRemoteDevice().getName();
 
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(MainActivity.this, "Connected To " + name, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-
-
+                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Connected To " + name, Toast.LENGTH_SHORT).show());
 
                 } catch (IOException e) {
                     Log.e(TAG, "Socket's accept() method failed", e);
@@ -371,9 +360,6 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if (socket != null) {
-                    // A connection was accepted. Perform work associated with
-                    // the connection in a separate thread.
-                    //  manageMyConnectedSocket(socket);
                     new ConnectedThread(socket).start();
                     try {
                         mmServerSocket.close();
@@ -396,27 +382,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // To Connect to another device // Client
-    private class ConnectThread extends Thread {
+    private class ClientThread extends Thread {
 
         String name;
 
-        public ConnectThread(BluetoothDevice device) {
-            // Use a temporary object that is later assigned to mmSocket
-            // because mmSocket is final.
+        public ClientThread(BluetoothDevice device) {
             BluetoothSocket tmp = null;
             name = device.getName();
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(MainActivity.this, "Waiting for Connection To " + name, Toast.LENGTH_SHORT).show();
-
-                }
-            });
+            runOnUiThread(() -> Toast.makeText(MainActivity.this, "Waiting for Connection To " + name, Toast.LENGTH_SHORT).show());
 
             Log.e(TAG, "ConnectThread Start");
             try {
-                // Get a BluetoothSocket to connect with the given BluetoothDevice.
-                // MY_UUID is the app's UUID string, also used in the server code.
                 tmp = device.createRfcommSocketToServiceRecord(myUUID);
             } catch (IOException e) {
                 Log.e(TAG, "Socket's create() method failed", e);
@@ -425,28 +401,18 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void run() {
-            // Cancel discovery because it otherwise slows down the connection.
             Log.e(TAG, "ConnectThread Run");
 
             BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
 
             try {
-                // Connect to the remote device through the socket. This call blocks
-                // until it succeeds or throws an exception.
                 mmSocket.connect();
                 Log.e(TAG, "Connected");
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MainActivity.this, "connected To " + name, Toast.LENGTH_SHORT).show();
-                    }
-                });
-
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "connected To " + name, Toast.LENGTH_SHORT).show());
 
 
             } catch (IOException connectException) {
-                // Unable to connect; close the socket and return.
                 Log.e(TAG, connectException.getMessage());
                 try {
                     mmSocket.close();
@@ -461,7 +427,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-        // Closes the client socket and causes the thread to finish.
         public void cancel() {
             try {
                 mmSocket.close();
@@ -479,18 +444,8 @@ public class MainActivity extends AppCompatActivity {
 
             Log.e(TAG, "ConnectedThread Start");
 
-//            runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    Toast.makeText(MainActivity.this, "Start Receive File... ", Toast.LENGTH_SHORT).show();
-//
-//                }
-//            });
-
             mmSocket = socket;
 
-            // Get the input and output streams; using temp objects because
-            // member streams are final.
             try {
                 tmpIn = socket.getInputStream();
             } catch (IOException e) {
@@ -510,11 +465,8 @@ public class MainActivity extends AppCompatActivity {
 
             Log.e(TAG, "ConnectedThread Run");
 
-
-            // mmBuffer store for the stream
             byte[] mmBuffer = new byte[16 * 1024];
 
-            // Keep listening to the InputStream until an exception occurs.
             while (true) {
                 try {
 
@@ -526,24 +478,12 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     out.flush();
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(MainActivity.this, "Received ", Toast.LENGTH_SHORT).show();
-
-                        }
-                    });
+                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Received" , Toast.LENGTH_SHORT).show());
 
                     //  out.close();
                     //   in.close();
                     //    socket.close();
 
-
-                    // Send the obtained bytes to the UI activity.
-//                    Message readMsg = handler.obtainMessage(
-//                            MessageConstants.MESSAGE_READ, numBytes, -1,
-//                            mmBuffer);
-//                    readMsg.sendToTarget();
                 } catch (IOException e) {
                     Log.e(TAG, "Input stream was disconnected", e);
                     break;
