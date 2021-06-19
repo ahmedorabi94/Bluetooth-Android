@@ -37,6 +37,9 @@ public class SearchActivity extends AppCompatActivity {
                 Log.e(TAG, admin.toString());
                 String result = "Name : " + admin.getName() + "\n" + "Date Of Birth : " + admin.getDateOfBirth() + "\n" + "Company : " + admin.getCompany();
                 binding.resultTv.setText(result);
+            }else {
+                binding.resultTv.setText("Not Found");
+
             }
 
 

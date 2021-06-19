@@ -7,10 +7,12 @@ import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -58,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private InputStream mmInStream;
     InputStream tmpIn = null;
     OutputStream tmpOut = null;
-
+    List<Device> deviceList;
     private final File filePath = new File(Environment.getExternalStorageDirectory() + "/Admin.xls");
 
     private final DeviceCallback callback = new DeviceCallback() {
@@ -82,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
         BA = BluetoothAdapter.getDefaultAdapter();
 
+        deviceList = new ArrayList<>();
 
         binding.turnOnBtn.setOnClickListener(v -> on());
         binding.turnOffBtn.setOnClickListener(v -> off());
@@ -121,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
 
         new ServerThread().start();
 
+
     }
 
 
@@ -143,17 +147,18 @@ public class MainActivity extends AppCompatActivity {
     public void visible() {
 
         // Register for broadcasts when a device is discovered.
-//        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-//        registerReceiver(receiver, filter);
 
-        Intent getVisible = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-        startActivityForResult(getVisible, 0);
+        binding.progressbar.setVisibility(View.VISIBLE);
+        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        registerReceiver(receiver, filter);
+        BA.startDiscovery();
+
+//        Intent getVisible = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+//        startActivityForResult(getVisible, 0);
     }
 
     public void list() {
         Set<BluetoothDevice> pairedDevices = BA.getBondedDevices();
-
-        List<Device> deviceList = new ArrayList<>();
 
         for (BluetoothDevice bt : pairedDevices) {
             deviceList.add(new Device(bt.getName(), bt.getAddress()));
@@ -162,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
         DeviceAdapter adapter = new DeviceAdapter(callback);
         adapter.submitList(deviceList);
         binding.recyclerView.setAdapter(adapter);
-
+        binding.progressbar.setVisibility(View.GONE);
 
     }
 
@@ -310,6 +315,7 @@ public class MainActivity extends AppCompatActivity {
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
+            Log.e(TAG, "onReceive");
             String action = intent.getAction();
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 // Discovery has found a device. Get the BluetoothDevice
@@ -317,7 +323,8 @@ public class MainActivity extends AppCompatActivity {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 String deviceName = device.getName();
                 String deviceHardwareAddress = device.getAddress(); // MAC address
-
+                deviceList.add(new Device(deviceName, deviceHardwareAddress));
+                list();
                 Log.e("BroadcastReceiver", deviceName + " : " + deviceHardwareAddress);
             }
         }
@@ -327,7 +334,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        //   unregisterReceiver(receiver);
+        unregisterReceiver(receiver);
     }
 
     // To Accept from another device // Server
@@ -478,7 +485,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     out.flush();
-                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Received" , Toast.LENGTH_SHORT).show());
+                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Received", Toast.LENGTH_SHORT).show());
 
                     //  out.close();
                     //   in.close();
