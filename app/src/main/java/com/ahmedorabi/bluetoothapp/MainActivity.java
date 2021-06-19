@@ -115,7 +115,8 @@ public class MainActivity extends AppCompatActivity {
                 if (filePath.exists()) {
                     List<Admin> adminList = FileUtils.readExcel(this, filePath);
                     UserDao dao = AdminDatabase.getDatabase(getApplicationContext()).userDao();
-                    dao.insertAll(adminList);
+
+                    AdminDatabase.databaseWriteExecutor.execute(() -> dao.insertAll(adminList));
 
                 }
             } catch (Exception e) {

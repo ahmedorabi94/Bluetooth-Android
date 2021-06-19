@@ -9,6 +9,10 @@ import com.ahmedorabi.bluetoothapp.data.Admin;
 
 import java.util.List;
 
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.Single;
+
 @Dao
 public interface UserDao {
 
@@ -22,7 +26,7 @@ public interface UserDao {
     LiveData<List<Admin>> getAllUsers();
 
     @Query("SELECT * from user where mobile = :mobile")
-    Admin getAllUsersByMobile(String mobile);
+    LiveData<Admin> getUserByMobile(String mobile);
 
     @Query("DELETE FROM user WHERE name = :id")
     void deleteUser(String id);

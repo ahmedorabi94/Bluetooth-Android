@@ -6,7 +6,6 @@ import android.util.Log;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 
-import com.ahmedorabi.bluetoothapp.data.Admin;
 import com.ahmedorabi.bluetoothapp.data.db.AdminDatabase;
 import com.ahmedorabi.bluetoothapp.data.db.UserDao;
 import com.ahmedorabi.bluetoothapp.databinding.ActivitySearchBinding;
@@ -31,16 +30,16 @@ public class SearchActivity extends AppCompatActivity {
 
             UserDao dao = AdminDatabase.getDatabase(getApplicationContext()).userDao();
 
-            Admin admin = dao.getAllUsersByMobile(mobileNum);
+            dao.getUserByMobile(mobileNum).observe(this, admin -> {
+                if (admin != null) {
+                    Log.e(TAG, admin.toString());
+                    String result = "Name : " + admin.getName() + "\n" + "Date Of Birth : " + admin.getDateOfBirth() + "\n" + "Company : " + admin.getCompany();
+                    binding.resultTv.setText(result);
+                } else {
+                    binding.resultTv.setText("Not Found");
 
-            if (admin != null) {
-                Log.e(TAG, admin.toString());
-                String result = "Name : " + admin.getName() + "\n" + "Date Of Birth : " + admin.getDateOfBirth() + "\n" + "Company : " + admin.getCompany();
-                binding.resultTv.setText(result);
-            }else {
-                binding.resultTv.setText("Not Found");
-
-            }
+                }
+            });
 
 
         });
