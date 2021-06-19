@@ -24,22 +24,13 @@ import com.ahmedorabi.bluetoothapp.adapter.DeviceAdapter;
 import com.ahmedorabi.bluetoothapp.adapter.DeviceCallback;
 import com.ahmedorabi.bluetoothapp.data.Admin;
 import com.ahmedorabi.bluetoothapp.data.Device;
-import com.ahmedorabi.bluetoothapp.data.GenerateAdmins;
 import com.ahmedorabi.bluetoothapp.data.db.AdminDatabase;
 import com.ahmedorabi.bluetoothapp.data.db.UserDao;
 import com.ahmedorabi.bluetoothapp.databinding.ActivityMainBinding;
-
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellValue;
-import org.apache.poi.ss.usermodel.FormulaEvaluator;
-import org.apache.poi.ss.usermodel.Row;
+import com.ahmedorabi.bluetoothapp.utils.FileUtils;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,12 +44,9 @@ public class MainActivity extends AppCompatActivity {
 
     private BluetoothAdapter BA;
     private ActivityMainBinding binding;
-
     private final String TAG = "MainActivity";
     static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-
     private BluetoothSocket mmSocket;
-
     private InputStream mmInStream;
     InputStream tmpIn = null;
     OutputStream tmpOut = null;
@@ -69,11 +57,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onItemClick(Device device) {
 
-            Log.e("onItemClick", device.toString());
             BluetoothDevice bluetoothDevice = BA.getRemoteDevice(device.getAddress());
 
             new ClientThread(bluetoothDevice).start();
-
 
         }
     };
@@ -104,7 +90,8 @@ public class MainActivity extends AppCompatActivity {
 
         binding.sendDataBtn.setOnClickListener(v -> {
 
-            createExcelSheet();
+            FileUtils.createExcelSheet(filePath);
+
             try {
                 if (mmSocket != null && filePath.exists()) {
                     Toast.makeText(MainActivity.this, "Start Sending  File... ", Toast.LENGTH_SHORT).show();
@@ -118,12 +105,14 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-
         binding.receiveDataBtn.setOnClickListener(v -> {
             try {
 
                 if (filePath.exists()) {
-                    readExcel(filePath);
+                    List<Admin> adminList = FileUtils.readExcel(this, filePath);
+                    UserDao dao = AdminDatabase.getDatabase(getApplicationContext()).userDao();
+                    dao.insertAll(adminList);
+
                 }
             } catch (Exception e) {
                 Log.e(TAG, e.getMessage());
@@ -182,124 +171,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-    public void createExcelSheet() {
-
-        HSSFWorkbook hssfWorkbook = new HSSFWorkbook();
-        HSSFSheet sheet = hssfWorkbook.createSheet("Custom Sheet");
-
-        HSSFRow rowhead = sheet.createRow((short) 0);
-        rowhead.createCell(0).setCellValue("Name");
-        rowhead.createCell(1).setCellValue("Mobile Number");
-        rowhead.createCell(2).setCellValue("Date Of Birth");
-        rowhead.createCell(3).setCellValue("working Company");
-
-        List<Admin> admins = GenerateAdmins.getAdmins();
-
-        for (int i = 1; i <= 5; i++) {
-            HSSFRow row = sheet.createRow((short) i);
-            Admin admin = admins.get(i - 1);
-            row.createCell(0).setCellValue(admin.getName());
-            row.createCell(1).setCellValue(admin.getMobile());
-            row.createCell(2).setCellValue(admin.getDateOfBirth());
-            row.createCell(3).setCellValue(admin.getCompany());
-        }
-
-
-        try {
-            if (!filePath.exists()) {
-                filePath.createNewFile();
-            }
-
-            FileOutputStream fileOutputStream = new FileOutputStream(filePath);
-            hssfWorkbook.write(fileOutputStream);
-
-            fileOutputStream.flush();
-            fileOutputStream.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
-    }
-
-    public void readExcel(File file) {
-        if (file == null) {
-            Log.e("NullFile", "read Excel Error, file is empty");
-            return;
-        }
-
-        try {
-            InputStream stream = new FileInputStream(file);
-            HSSFWorkbook workbook = new HSSFWorkbook(stream);
-            HSSFSheet sheet = workbook.getSheetAt(0);
-            int rowsCount = sheet.getPhysicalNumberOfRows();
-            FormulaEvaluator formulaEvaluator = workbook.getCreationHelper().createFormulaEvaluator();
-
-            String name = "", mobile = "", dateOfBirth = "", company = "";
-            List<Admin> adminList = new ArrayList<>();
-
-            for (int r = 1; r < rowsCount; r++) {
-                Row row = sheet.getRow(r);
-                int cellsCount = row.getPhysicalNumberOfCells();
-                //Read one line at a time
-                for (int c = 0; c < cellsCount; c++) {
-                    //Convert the contents of each grid to a string
-                    String value = getCellAsString(row, c, formulaEvaluator);
-                    //   String cellInfo = "r:" + r + "; c:" + c + "; v:" + value;
-
-                    switch (c) {
-                        case 0:
-                            name = value;
-                            break;
-                        case 1:
-                            mobile = value;
-                            break;
-                        case 2:
-                            dateOfBirth = value;
-                            break;
-                        case 3:
-                            company = value;
-                            break;
-                    }
-                }
-
-                adminList.add(new Admin(name, mobile, dateOfBirth, company));
-
-            }
-
-            Log.e(TAG, adminList.toString());
-
-            UserDao dao = AdminDatabase.getDatabase(getApplicationContext()).userDao();
-            dao.insertAll(adminList);
-
-//            Admin admin = dao.getAllUsersByMobile("01011135949");
-//
-//            Log.e(TAG, admin.toString());
-
-
-        } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
-        }
-
-    }
-
-
-    private String getCellAsString(Row row, int c, FormulaEvaluator formulaEvaluator) {
-        String value = "";
-        try {
-            Cell cell = row.getCell(c);
-            CellValue cellValue = formulaEvaluator.evaluate(cell);
-
-            value = "" + cellValue.getStringValue();
-
-        } catch (NullPointerException e) {
-            /* proper error handling should be here */
-            Log.e(TAG, e.getMessage());
-        }
-        return value;
-    }
 
     public void sendFile(Uri uri, BluetoothSocket bs) throws IOException {
         BufferedInputStream bis = new BufferedInputStream(getContentResolver().openInputStream(uri));
@@ -453,7 +324,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
 
     private class ConnectedThread extends Thread {
         private final BluetoothSocket mmSocket;
