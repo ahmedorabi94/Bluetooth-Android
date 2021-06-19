@@ -9,81 +9,106 @@
         tools:context=".MainActivity">
 
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/turnOnBtn"
-            android:layout_width="0dp"
+        <TextView
+            android:id="@+id/titleTv"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Turn On"
-            android:textAllCaps="false"
-            app:layout_constraintEnd_toEndOf="@+id/listDevicesBtn"
-            app:layout_constraintStart_toStartOf="@+id/listDevicesBtn"
+            android:text="Bluetooth App"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/turnOffBtn"
-            android:layout_width="0dp"
+            android:id="@+id/turnOnBtn"
+            android:layout_width="140dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="8dp"
+            android:text="Turn On"
+            android:textAllCaps="false"
+            app:layout_constraintEnd_toEndOf="@+id/turnOffBtn"
+            app:layout_constraintStart_toStartOf="@+id/turnOffBtn"
+            app:layout_constraintTop_toBottomOf="@+id/titleTv" />
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/turnOffBtn"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:text="Turn Off"
             android:textAllCaps="false"
-            app:layout_constraintEnd_toEndOf="@+id/listDevicesBtn"
+            app:layout_constraintEnd_toEndOf="@+id/getVisiableBtn"
             app:layout_constraintHorizontal_bias="0.509"
-            app:layout_constraintStart_toStartOf="@+id/listDevicesBtn"
+            app:layout_constraintStart_toStartOf="@+id/getVisiableBtn"
             app:layout_constraintTop_toBottomOf="@+id/turnOnBtn" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/getVisiableBtn"
-            android:layout_width="0dp"
+            android:layout_width="140dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="8dp"
             android:text="Get visible"
             android:textAllCaps="false"
-            app:layout_constraintEnd_toEndOf="@+id/listDevicesBtn"
-            app:layout_constraintStart_toStartOf="@+id/listDevicesBtn"
+            app:layout_constraintEnd_toEndOf="@+id/sendDataBtn"
+            app:layout_constraintStart_toStartOf="@+id/sendDataBtn"
             app:layout_constraintTop_toBottomOf="@+id/turnOffBtn" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/sendDataBtn"
-            android:layout_width="0dp"
+            android:layout_width="140dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Send Data"
+            android:layout_marginTop="8dp"
+            android:text="Send File"
             android:textAllCaps="false"
-            app:layout_constraintEnd_toEndOf="@+id/listDevicesBtn"
-            app:layout_constraintStart_toStartOf="@+id/listDevicesBtn"
+            app:layout_constraintEnd_toEndOf="@+id/receiveDataBtn"
+            app:layout_constraintStart_toStartOf="@+id/receiveDataBtn"
             app:layout_constraintTop_toBottomOf="@+id/getVisiableBtn" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/receiveDataBtn"
-            android:layout_width="wrap_content"
+            android:layout_width="140dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="8dp"
             android:maxLines="1"
-            android:text="Receive Data"
+            android:text="Read File"
             android:textAllCaps="false"
-            app:layout_constraintEnd_toEndOf="@+id/listDevicesBtn"
-            app:layout_constraintStart_toStartOf="@+id/listDevicesBtn"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/sendDataBtn" />
 
-
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/listDevicesBtn"
-            android:layout_width="wrap_content"
+            android:id="@+id/searchBtn"
+            android:layout_width="140dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="List Devices"
+            android:layout_marginTop="8dp"
+            android:maxLines="1"
+            android:text="Search"
             android:textAllCaps="false"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/receiveDataBtn" />
 
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/listDevicesBtn"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="List Devices"
+            android:textAllCaps="false"
+            app:layout_constraintEnd_toEndOf="@+id/receiveDataBtn"
+            app:layout_constraintStart_toStartOf="@+id/receiveDataBtn"
+            app:layout_constraintTop_toBottomOf="@+id/searchBtn" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="10dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintBottom_toBottomOf="parent"

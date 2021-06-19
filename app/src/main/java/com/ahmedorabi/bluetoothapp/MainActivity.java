@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
     InputStream tmpIn = null;
     OutputStream tmpOut = null;
 
-    private final File filePath = new File(Environment.getExternalStorageDirectory() + "/Demo4.xls");
+    private final File filePath = new File(Environment.getExternalStorageDirectory() + "/Admin.xls");
 
     private final DeviceCallback callback = new DeviceCallback() {
         @Override
@@ -91,7 +91,9 @@ public class MainActivity extends AppCompatActivity {
         binding.sendDataBtn.setOnClickListener(v -> {
 
             try {
-                sendFile(Uri.fromFile(filePath), mmSocket);
+                if (mmSocket != null && filePath.exists()) {
+                    sendFile(Uri.fromFile(filePath), mmSocket);
+                }
             } catch (IOException e) {
                 Log.e(TAG, "Error occurred when sending data", e);
                 e.printStackTrace();
@@ -102,15 +104,19 @@ public class MainActivity extends AppCompatActivity {
 
 
         binding.receiveDataBtn.setOnClickListener(v -> {
-            //  createExcelSheet();
             try {
-                readExcel(filePath);
+
+                if (filePath.exists()) {
+                    readExcel(filePath);
+                }
             } catch (Exception e) {
-                //  e.printStackTrace();
                 Log.e(TAG, e.getMessage());
             }
         });
 
+        binding.searchBtn.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, SearchActivity.class)));
+
+        createExcelSheet();
 
         new AcceptThread().start();
 
@@ -150,7 +156,6 @@ public class MainActivity extends AppCompatActivity {
 
         for (BluetoothDevice bt : pairedDevices) {
             deviceList.add(new Device(bt.getName(), bt.getAddress()));
-
         }
 
         DeviceAdapter adapter = new DeviceAdapter(callback);
@@ -162,7 +167,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void createExcelSheet() {
-
 
         HSSFWorkbook hssfWorkbook = new HSSFWorkbook();
         HSSFSheet sheet = hssfWorkbook.createSheet("Custom Sheet");
@@ -223,12 +227,10 @@ public class MainActivity extends AppCompatActivity {
                 Row row = sheet.getRow(r);
                 int cellsCount = row.getPhysicalNumberOfCells();
                 //Read one line at a time
-
-
                 for (int c = 0; c < cellsCount; c++) {
                     //Convert the contents of each grid to a string
                     String value = getCellAsString(row, c, formulaEvaluator);
-                    String cellInfo = "r:" + r + "; c:" + c + "; v:" + value;
+                    //   String cellInfo = "r:" + r + "; c:" + c + "; v:" + value;
 
                     switch (c) {
                         case 0:
@@ -244,9 +246,6 @@ public class MainActivity extends AppCompatActivity {
                             company = value;
                             break;
                     }
-
-                    //    LogUtils.d(cellInfo);
-                    Log.e(TAG, cellInfo);
                 }
 
                 adminList.add(new Admin(name, mobile, dateOfBirth, company));
@@ -258,15 +257,13 @@ public class MainActivity extends AppCompatActivity {
             UserDao dao = AdminDatabase.getDatabase(getApplicationContext()).userDao();
             dao.insertAll(adminList);
 
-            Admin admin = dao.getAllUsersByMobile("01011135949");
-
-            Log.e(TAG, admin.toString());
+//            Admin admin = dao.getAllUsersByMobile("01011135949");
+//
+//            Log.e(TAG, admin.toString());
 
 
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
-            /* proper exception handling to be here */
-            //   LogUtils.e(e.toString());
         }
 
     }
@@ -427,10 +424,6 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            // The connection attempt succeeded. Perform work associated with
-            // the connection in a separate thread.
-            // manageMyConnectedSocket(mmSocket);
-
             new ConnectedThread(mmSocket).start();
 
         }
@@ -449,16 +442,11 @@ public class MainActivity extends AppCompatActivity {
     private class ConnectedThread extends Thread {
         private final BluetoothSocket mmSocket;
 
-        //  private static final String TAG = "MY_APP_DEBUG_TAG";
-        //  private Handler handler; // handler that gets info from Bluetooth service
-
-
         public ConnectedThread(BluetoothSocket socket) {
 
             Log.e(TAG, "ConnectedThread Start");
 
             mmSocket = socket;
-
 
             // Get the input and output streams; using temp objects because
             // member streams are final.
@@ -490,8 +478,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
 
                     FileOutputStream out = new FileOutputStream(filePath);
-//                    OutputStream out = mmOutStream;
-//
+
                     int count;
                     while ((count = mmInStream.read(mmBuffer)) > 0) {
                         out.write(mmBuffer, 0, count);
