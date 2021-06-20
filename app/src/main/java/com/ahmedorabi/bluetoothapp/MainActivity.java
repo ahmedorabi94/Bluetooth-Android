@@ -127,8 +127,10 @@ public class MainActivity extends AppCompatActivity {
         binding.searchBtn.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, SearchActivity.class)));
 
 
-        serverThread = new ServerThread();
-        serverThread.start();
+        if (BA.isEnabled()) {
+            serverThread = new ServerThread();
+            serverThread.start();
+        }
 
 
     }
@@ -139,6 +141,10 @@ public class MainActivity extends AppCompatActivity {
             Intent turnOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(turnOn, 0);
             Toast.makeText(getApplicationContext(), "Turned on", Toast.LENGTH_LONG).show();
+
+            serverThread = new ServerThread();
+            serverThread.start();
+
         } else {
             Toast.makeText(getApplicationContext(), "Already on", Toast.LENGTH_LONG).show();
         }
